@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Conversational AI Character — Public Prototype</title>
+  <title>AI Ded Moroz — Public Prototype</title>
   <style>
     :root { --bg:#000; --gold:#ffd700; --ice:#00f3ff; }
     * { box-sizing:border-box; }
@@ -20,9 +20,12 @@
     #subs { position:absolute; left:10%; right:10%; bottom:12%; text-align:center; font-size:28px; text-shadow:0 4px 20px #000; }
     #logs { position:absolute; top:65px; left:24px; width:360px; max-height:300px; overflow:hidden; font:11px monospace; color:#aaa; }
     #curtain { z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000; }
+    .brand { color:var(--gold); font-size:28px; font-weight:800; letter-spacing:3px; margin-bottom:8px; }
     input,select,button { width:230px; padding:12px; background:#090909; color:var(--gold); border:1px solid var(--gold); }
     button { cursor:pointer; font-weight:700; letter-spacing:2px; }
-    .note { margin-top:8px; font:10px monospace; color:#555; }
+    .demo { display:flex; gap:8px; margin-top:10px; }
+    .demo button { width:auto; min-width:108px; padding:9px 12px; font-size:11px; }
+    .note { margin-top:8px; font:10px monospace; color:#555; text-align:center; }
   </style>
 </head>
 <body>
@@ -38,12 +41,19 @@
   </div>
 
   <div id="curtain">
+    <div class="brand">AI DED MOROZ</div>
     <input id="name" placeholder="ИМЯ" autocomplete="off" />
     <select id="gender"><option>мальчик</option><option>девочка</option></select>
     <button id="start">НАЧАТЬ</button>
-    <div class="note">SANITIZED PORTFOLIO BUILD</div>
+    <div class="demo">
+      <button data-demo="16s_3">МАГИЯ</button>
+      <button data-demo="16s_9">КОСМОС</button>
+      <button data-demo="16s_11">ПОДАРОК</button>
+    </div>
+    <div class="note">SANITIZED PORTFOLIO BUILD<br>Demo buttons use original AI-generated video assets.</div>
   </div>
 
+  <script src="./video-library.js"></script>
   <script>
     // Public build: provider credentials are intentionally absent from the browser.
     // The production version used private provider integrations; here all model calls
@@ -58,17 +68,9 @@
 
     const CHILD = { name: 'Друг', gender: 'мальчик' };
 
-    // Production video files are not redistributed. Placeholder paths preserve routing.
-    const VIDEOS = {
-      idle: '../assets/idle.mp4',
-      intro: '../assets/intro.mp4',
-      scenes: [
-        { id:'scene_01', tags:'story warm calm', src:'../assets/scene-01.mp4' },
-        { id:'scene_02', tags:'explanation gesture', src:'../assets/scene-02.mp4' },
-        { id:'scene_03', tags:'magic wonder', src:'../assets/scene-03.mp4' },
-        { id:'scene_04', tags:'book story', src:'../assets/scene-04.mp4' },
-        { id:'scene_05', tags:'quiet secret', src:'../assets/scene-05.mp4' }
-      ]
+    // Original AI-generated media library is loaded from video-library.js.
+    const VIDEOS = window.VIDEO_LIBRARY || {
+      ZERO: '', INTRO: '', REACTIONS: [], LIBRARY: []
     };
 
     const UI = {
@@ -88,13 +90,18 @@
       layers:[document.querySelector('#v1'),document.querySelector('#v2')],
       active:0,
       current:null,
+      find(id) {
+        return [...VIDEOS.REACTIONS, ...VIDEOS.LIBRARY].find(item => item.id === id);
+      },
       src(id) {
-        if (id === 'INTRO') return VIDEOS.intro;
-        if (id === 'ZERO') return VIDEOS.idle;
-        return VIDEOS.scenes.find(x => x.id === id)?.src || VIDEOS.idle;
+        if (id === 'INTRO') return VIDEOS.INTRO;
+        if (id === 'ZERO') return VIDEOS.ZERO;
+        return this.find(id)?.src || VIDEOS.ZERO;
       },
       init() {
-        this.layers.forEach(v => { v.src = VIDEOS.idle; v.load(); });
+        this.layers.forEach(v => {
+          if (VIDEOS.ZERO) { v.src = VIDEOS.ZERO; v.load(); }
+        });
       },
       async play(id, loop=true) {
         if (id === 'ZERO' && this.current === 'ZERO') return;
@@ -102,7 +109,8 @@
         const next = this.layers[nextIndex];
         const current = this.layers[this.active];
         const src = this.src(id);
-        if (!next.src.includes(src)) { next.src = src; next.load(); }
+        if (!src) return;
+        if (next.src !== src) { next.src = src; next.load(); }
         next.loop = loop;
         try {
           await next.play();
@@ -117,7 +125,7 @@
       preload(id) {
         const next = this.layers[this.active === 0 ? 1 : 0];
         const src = this.src(id);
-        if (!next.src.includes(src)) { next.src = src; next.load(); }
+        if (src && next.src !== src) { next.src = src; next.load(); }
       }
     };
 
@@ -145,18 +153,23 @@
         }
       },
 
-      // Fast local acknowledgement hides part of the model latency.
+      // Fast local acknowledgement hides part of the model latency and can select
+      // one of the short generated reaction clips before the main LLM plan arrives.
       async reflex(text) {
         const s = text.toLowerCase();
-        if (s.includes('привет')) return { text:'Охо-хо! Рад тебя слышать!', src:null };
-        if (s.includes('волшеб')) return { text:'Волшебство? Вот это хороший вопрос!', src:null };
-        return { text:'Охо-хо, слушаю тебя внимательно.', src:null };
+        if (s.includes('привет')) return { text:'Охо-хо! Рад тебя слышать!', video_id:'8s_1' };
+        if (s.includes('волшеб')) return { text:'Волшебство? Вот это хороший вопрос!', video_id:'8s_5' };
+        if (s.includes('груст') || s.includes('плохо')) return { text:'Я тебя внимательно слушаю.', video_id:'8s_8' };
+        return { text:'Охо-хо, слушаю тебя внимательно.', video_id:'8s_9' };
       },
 
       async strategize(userText, reflexText) {
         try {
           const data = await postJSON(CONFIG.api.strategize, {
-            userText, reflexText, child:CHILD
+            userText,
+            reflexText,
+            child:CHILD,
+            availableVideos: VIDEOS.LIBRARY.map(({id,tags}) => ({id,tags}))
           });
           return Array.isArray(data.chain) ? data.chain : [];
         } catch (err) {
@@ -195,6 +208,16 @@
         this.listen();
       },
 
+      async demo(videoId) {
+        const item = VIDEO.find(videoId);
+        document.querySelector('#curtain')?.remove();
+        VIDEO.init();
+        UI.state('VIDEO DEMO','speaking');
+        UI.subtitle(item ? item.tags : videoId);
+        UI.log('DEMO', `semantic route -> ${videoId}`);
+        await VIDEO.play(videoId, true);
+      },
+
       async execute(blob) {
         if (this.running) return;
         this.running = true;
@@ -211,13 +234,13 @@
         const planPromise = NEURAL.strategize(text, reflex.text);
 
         const reflexAudio = await reflexAudioPromise;
-        const reflexPlayback = this.playBlock('ZERO', reflex.text, reflexAudio);
+        const reflexPlayback = this.playBlock(reflex.video_id || 'ZERO', reflex.text, reflexAudio);
         UI.log('AI', `[REFLEX] ${reflex.text}`);
 
         let chain = [];
         try { chain = await planPromise; } catch (_) {}
 
-        // Pre-generate every speech chunk and preload the first matching video
+        // Pre-generate every speech chunk and preload the first semantically selected video
         // while the acknowledgement is still playing.
         const audioPromises = chain.map(block => NEURAL.speak(block.text));
         if (chain[0]) VIDEO.preload(chain[0].video_id);
@@ -228,7 +251,7 @@
           const block = chain[i];
           if (chain[i+1]) VIDEO.preload(chain[i+1].video_id);
           const audio = await audioPromises[i];
-          UI.log('AI', `[CHAIN ${i+1}] ${block.text}`);
+          UI.log('AI', `[CHAIN ${i+1}] ${block.video_id} · ${block.text}`);
           await this.playBlock(block.video_id, block.text, audio);
         }
 
@@ -317,6 +340,9 @@
     };
 
     document.querySelector('#start').addEventListener('click', () => CORE.start());
+    document.querySelectorAll('[data-demo]').forEach(button => {
+      button.addEventListener('click', () => CORE.demo(button.dataset.demo));
+    });
   </script>
 </body>
 </html>
