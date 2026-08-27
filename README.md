@@ -27,4 +27,4 @@ See `docs/ARCHITECTURE.md` and `examples/orchestration.example.js` for a simplif
 
 ---
 
-Built by **Artem Ostvald**.
+Built by **Artem Ostvald, Zakhar Kondratiev**.
