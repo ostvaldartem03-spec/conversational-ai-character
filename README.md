@@ -44,11 +44,13 @@ The public video library and the generated assets shown here were created by **A
 
 The original AI prototype was operational. This public repository is a **sanitized portfolio reconstruction**, not an end-to-end production build: provider backends, credentials and private integrations are intentionally omitted.
 
+The public reconstruction exposes the generated-media demo flow. Live STT / LLM / TTS mode is deliberately disabled unless the private backend is supplied.
+
 Final production integration was handled by another team and was not completed.
 
 ## Repository
 
-- `src/index.html` — sanitized public reconstruction of the prototype flow
+- `src/index.html` — sanitized public reconstruction and media demo
 - `src/video-library.js` — generated video library and semantic tags
 - `docs/ARCHITECTURE.md` — technical flow and latency strategy
 
