@@ -1,44 +1,53 @@
 # AI Ded Moroz
 
-Conversational AI prototype with speech recognition, LLM-driven response planning, synthesized voice and semantic video routing.
+Commercial conversational AI prototype with speech recognition, LLM-driven response planning, synthesized voice and semantic video routing.
 
-## Architecture
+<p align="center">
+  <img src="docs/screenshots/dedmoroz-tree.webp" width="420" alt="AI Ded Moroz generated scene" />
+</p>
 
-`Microphone -> VAD -> Speech-to-Text -> LLM -> structured response -> video + TTS -> playback`
+## My role
 
-## What I built
+I worked on the **AI implementation and generative media layer**, not the final production UI.
 
 - character behaviour and prompt architecture
 - speech transcription workflow
 - structured response chains
-- semantic video selection
-- parallel audio and video preloading
+- semantic video routing
+- parallel TTS and video preloading
 - fallback handling
-- AI-generated video library for reactions and scene routing
+- AI-generated reaction and scene library
 
-## Video system
+`Microphone -> VAD -> Speech-to-Text -> LLM -> structured response -> video + TTS -> playback`
 
-The prototype uses a tagged library of short reaction clips and longer scene clips. The model can return a `video_id` together with text, and the playback layer resolves that ID to the matching generated video.
+## Runtime prototype
 
-Example:
+The dark interface below was a development/testing environment for validating the conversational pipeline, logs, subtitles and playback flow — not the intended final product UI.
 
-```json
-{
-  "video_id": "16s_9",
-  "text": "..."
-}
-```
+![Runtime testing interface](docs/screenshots/dedmoroz-runtime.webp)
 
-`16s_9` maps to a generated scene tagged around telescope / space / stars.
+## Generated media
+
+The prototype uses a tagged library of short reactions and longer scenes. The model can return a `video_id` together with text, and the playback layer resolves it to the matching generated clip.
+
+| Story scene | Gift scene |
+| --- | --- |
+| ![Ded Moroz with a book](docs/screenshots/dedmoroz-book.webp) | ![Ded Moroz with a gift](docs/screenshots/dedmoroz-gift.webp) |
+
+The public video library and the generated assets shown here were created by **Artem Ostvald**.
 
 ## Stack
 
 `JavaScript` · `Whisper` · `LLM APIs` · `TTS` · `Web Audio` · `MediaRecorder`
 
-## Public version
+## Project status
+
+The AI layer was implemented as a working prototype. Final production integration was handled by another team and was not completed.
+
+## Repository
 
 - `src/index.html` — sanitized public prototype
-- `src/video-library.js` — original generated video library and semantic tags
+- `src/video-library.js` — generated video library and semantic tags
 - `docs/ARCHITECTURE.md` — technical flow
 - `examples/orchestration.example.js` — simplified orchestration example
 
@@ -46,5 +55,4 @@ Provider credentials and private production integrations are not included.
 
 ---
 
-Built by **Artem Ostvald** and **Zakhar Kondratiev**.  
-AI-generated video assets in the public library were created by **Artem Ostvald**.
+Built by **Artem Ostvald** and **Zakhar Kondratiev**.
