@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Ded Moroz — Public Prototype</title>
+  <title>AI Ded Moroz — Portfolio Reconstruction</title>
   <style>
     :root { --bg:#000; --gold:#ffd700; --ice:#00f3ff; }
     * { box-sizing:border-box; }
@@ -18,14 +18,22 @@
     .dot.processing { background:var(--gold); box-shadow:0 0 16px var(--gold); }
     .dot.speaking { background:#fff; box-shadow:0 0 16px #fff; }
     #subs { position:absolute; left:10%; right:10%; bottom:12%; text-align:center; font-size:28px; text-shadow:0 4px 20px #000; }
-    #logs { position:absolute; top:65px; left:24px; width:360px; max-height:300px; overflow:hidden; font:11px monospace; color:#aaa; }
-    #curtain { z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000; }
+    #logs { position:absolute; top:65px; left:24px; width:420px; max-height:300px; overflow:hidden; font:11px monospace; color:#aaa; }
+    #curtain { z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:#000; transition:background .3s ease; }
+    #curtain.demo-mode { justify-content:flex-end; padding-bottom:22px; background:linear-gradient(to top,rgba(0,0,0,.72),transparent 28%); pointer-events:none; }
+    #curtain.demo-mode .brand,
+    #curtain.demo-mode input,
+    #curtain.demo-mode select,
+    #curtain.demo-mode #start,
+    #curtain.demo-mode .note { display:none; }
+    #curtain.demo-mode .demo { pointer-events:auto; }
     .brand { color:var(--gold); font-size:28px; font-weight:800; letter-spacing:3px; margin-bottom:8px; }
-    input,select,button { width:230px; padding:12px; background:#090909; color:var(--gold); border:1px solid var(--gold); }
-    button { cursor:pointer; font-weight:700; letter-spacing:2px; }
+    input,select,button { width:250px; padding:12px; background:#090909; color:var(--gold); border:1px solid var(--gold); }
+    button { cursor:pointer; font-weight:700; letter-spacing:1.5px; }
+    button:disabled { cursor:not-allowed; opacity:.45; }
     .demo { display:flex; gap:8px; margin-top:10px; }
     .demo button { width:auto; min-width:108px; padding:9px 12px; font-size:11px; }
-    .note { margin-top:8px; font:10px monospace; color:#555; text-align:center; }
+    .note { max-width:420px; margin-top:8px; font:10px/1.5 monospace; color:#666; text-align:center; }
   </style>
 </head>
 <body>
@@ -35,7 +43,7 @@
   </div>
 
   <div id="hud">
-    <div class="status"><span id="dot" class="dot"></span><span id="status">SYSTEM OFFLINE</span></div>
+    <div class="status"><span id="dot" class="dot"></span><span id="status">PUBLIC RECONSTRUCTION</span></div>
     <div id="logs"></div>
     <div id="subs"></div>
   </div>
@@ -44,21 +52,19 @@
     <div class="brand">AI DED MOROZ</div>
     <input id="name" placeholder="ИМЯ" autocomplete="off" />
     <select id="gender"><option>мальчик</option><option>девочка</option></select>
-    <button id="start">НАЧАТЬ</button>
+    <button id="start" disabled>LIVE AI MODE — PRIVATE BACKEND</button>
     <div class="demo">
       <button data-demo="16s_3">МАГИЯ</button>
       <button data-demo="16s_9">КОСМОС</button>
       <button data-demo="16s_11">ПОДАРОК</button>
     </div>
-    <div class="note">SANITIZED PORTFOLIO BUILD<br>Demo buttons use original AI-generated video assets.</div>
+    <div class="note">SANITIZED PORTFOLIO RECONSTRUCTION<br>Generated-media demos are public. Live STT / LLM / TTS provider backends are intentionally omitted.</div>
   </div>
 
   <script src="./video-library.js"></script>
   <script>
-    // Public build: provider credentials are intentionally absent from the browser.
-    // The production version used private provider integrations; here all model calls
-    // are represented by backend endpoints.
     const CONFIG = {
+      liveBackend: false,
       api: {
         transcribe: '/api/transcribe',
         strategize: '/api/strategy',
@@ -67,11 +73,7 @@
     };
 
     const CHILD = { name: 'Друг', gender: 'мальчик' };
-
-    // Original AI-generated media library is loaded from video-library.js.
-    const VIDEOS = window.VIDEO_LIBRARY || {
-      ZERO: '', INTRO: '', REACTIONS: [], LIBRARY: []
-    };
+    const VIDEOS = window.VIDEO_LIBRARY || { ZERO:'', INTRO:'', REACTIONS:[], LIBRARY:[] };
 
     const UI = {
       state(text, cls='') {
@@ -98,10 +100,16 @@
         if (id === 'ZERO') return VIDEOS.ZERO;
         return this.find(id)?.src || VIDEOS.ZERO;
       },
+      setSource(video, src) {
+        if (!src) return false;
+        if (video.getAttribute('src') !== src) {
+          video.setAttribute('src', src);
+          video.load();
+        }
+        return true;
+      },
       init() {
-        this.layers.forEach(v => {
-          if (VIDEOS.ZERO) { v.src = VIDEOS.ZERO; v.load(); }
-        });
+        this.layers.forEach(v => this.setSource(v, VIDEOS.ZERO));
       },
       async play(id, loop=true) {
         if (id === 'ZERO' && this.current === 'ZERO') return;
@@ -109,27 +117,28 @@
         const next = this.layers[nextIndex];
         const current = this.layers[this.active];
         const src = this.src(id);
-        if (!src) return;
-        if (next.src !== src) { next.src = src; next.load(); }
+        if (!this.setSource(next, src)) return;
         next.loop = loop;
         try {
           await next.play();
           next.classList.add('active');
           current.classList.remove('active');
+          current.pause();
           this.active = nextIndex;
           this.current = id;
         } catch (err) {
+          UI.log('MEDIA', `Unable to play ${id}`);
           console.warn('Video unavailable in public build', err);
         }
       },
       preload(id) {
         const next = this.layers[this.active === 0 ? 1 : 0];
-        const src = this.src(id);
-        if (src && next.src !== src) { next.src = src; next.load(); }
+        this.setSource(next, this.src(id));
       }
     };
 
     async function postJSON(url, body) {
+      if (!CONFIG.liveBackend) throw new Error('Private backend is not included in this public reconstruction');
       const r = await fetch(url, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -141,6 +150,7 @@
 
     const NEURAL = {
       async hear(blob) {
+        if (!CONFIG.liveBackend) return null;
         const form = new FormData();
         form.append('file', blob, 'voice.webm');
         try {
@@ -148,13 +158,10 @@
           if (!r.ok) throw new Error(`STT ${r.status}`);
           return (await r.json()).text || null;
         } catch (err) {
-          console.warn('STT unavailable in public build', err);
+          console.warn('STT unavailable', err);
           return null;
         }
       },
-
-      // Fast local acknowledgement hides part of the model latency and can select
-      // one of the short generated reaction clips before the main LLM plan arrives.
       async reflex(text) {
         const s = text.toLowerCase();
         if (s.includes('привет')) return { text:'Охо-хо! Рад тебя слышать!', video_id:'8s_1' };
@@ -162,7 +169,6 @@
         if (s.includes('груст') || s.includes('плохо')) return { text:'Я тебя внимательно слушаю.', video_id:'8s_8' };
         return { text:'Охо-хо, слушаю тебя внимательно.', video_id:'8s_9' };
       },
-
       async strategize(userText, reflexText) {
         try {
           const data = await postJSON(CONFIG.api.strategize, {
@@ -173,17 +179,16 @@
           });
           return Array.isArray(data.chain) ? data.chain : [];
         } catch (err) {
-          console.warn('LLM unavailable in public build', err);
+          console.warn('LLM unavailable', err);
           return [];
         }
       },
-
       async speak(text) {
         try {
           const data = await postJSON(CONFIG.api.tts, { text });
           return data.audio_url || null;
         } catch (err) {
-          console.warn('TTS unavailable in public build', err);
+          console.warn('TTS unavailable', err);
           return null;
         }
       }
@@ -192,8 +197,13 @@
     const CORE = {
       audioCtx:null,
       running:false,
-
       async start() {
+        if (!CONFIG.liveBackend) {
+          UI.state('LIVE BACKEND OMITTED');
+          UI.log('SYS','Live STT / LLM / TTS mode is intentionally unavailable in the public reconstruction.');
+          return;
+        }
+
         const name = document.querySelector('#name').value.trim();
         if (!name) return alert('Введи имя!');
         CHILD.name = name;
@@ -202,24 +212,20 @@
         document.querySelector('#curtain').remove();
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         VIDEO.init();
-        VIDEO.play('INTRO', false);
-
         await this.playBlock('ZERO', `Охо-хо! Здравствуй, ${CHILD.name}! Я Дед Мороз. Рад тебя видеть!`);
         this.listen();
       },
-
       async demo(videoId) {
         const item = VIDEO.find(videoId);
-        document.querySelector('#curtain')?.remove();
+        document.querySelector('#curtain')?.classList.add('demo-mode');
         VIDEO.init();
-        UI.state('VIDEO DEMO','speaking');
+        UI.state('MEDIA DEMO','speaking');
         UI.subtitle(item ? item.tags : videoId);
         UI.log('DEMO', `semantic route -> ${videoId}`);
         await VIDEO.play(videoId, true);
       },
-
       async execute(blob) {
-        if (this.running) return;
+        if (this.running || !CONFIG.liveBackend) return;
         this.running = true;
         UI.state('PROCESSING','processing');
 
@@ -228,8 +234,6 @@
         UI.log('USR', text);
 
         const reflex = await NEURAL.reflex(text);
-
-        // Two paths start together: immediate voice acknowledgement and LLM planning.
         const reflexAudioPromise = NEURAL.speak(reflex.text);
         const planPromise = NEURAL.strategize(text, reflex.text);
 
@@ -240,11 +244,8 @@
         let chain = [];
         try { chain = await planPromise; } catch (_) {}
 
-        // Pre-generate every speech chunk and preload the first semantically selected video
-        // while the acknowledgement is still playing.
         const audioPromises = chain.map(block => NEURAL.speak(block.text));
         if (chain[0]) VIDEO.preload(chain[0].video_id);
-
         await reflexPlayback;
 
         for (let i=0; i<chain.length; i++) {
@@ -254,10 +255,8 @@
           UI.log('AI', `[CHAIN ${i+1}] ${block.video_id} · ${block.text}`);
           await this.playBlock(block.video_id, block.text, audio);
         }
-
         this.finish();
       },
-
       async playBlock(videoId, text, audioUrl=null) {
         UI.state('SPEAKING','speaking');
         UI.subtitle(text);
@@ -273,59 +272,64 @@
           audio.play().catch(resolve);
         });
       },
-
       listen() {
+        if (!CONFIG.liveBackend) return;
         UI.subtitle('');
         UI.state('LISTENING','listening');
         VIDEO.play('ZERO', true);
         VAD.start();
       },
-
       finish() {
         this.running = false;
         this.listen();
       }
     };
 
-    // Lightweight voice-activity detection used in the browser prototype.
     const VAD = {
       listening:false,
+      stream:null,
+      source:null,
+      analyser:null,
       recorder:null,
+      data:null,
       chunks:[],
 
+      async ensureMedia() {
+        if (this.stream?.active && this.analyser && this.recorder) return;
+        this.stream = await navigator.mediaDevices.getUserMedia({audio:true});
+        this.source = CORE.audioCtx.createMediaStreamSource(this.stream);
+        this.analyser = CORE.audioCtx.createAnalyser();
+        this.analyser.fftSize = 512;
+        this.source.connect(this.analyser);
+        this.data = new Uint8Array(this.analyser.frequencyBinCount);
+        this.recorder = new MediaRecorder(this.stream);
+        this.recorder.ondataavailable = e => this.chunks.push(e.data);
+      },
+
       async start() {
-        if (this.listening) return;
+        if (this.listening || !CONFIG.liveBackend) return;
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-          const source = CORE.audioCtx.createMediaStreamSource(stream);
-          const analyser = CORE.audioCtx.createAnalyser();
-          analyser.fftSize = 512;
-          source.connect(analyser);
-
-          const data = new Uint8Array(analyser.frequencyBinCount);
-          this.recorder = new MediaRecorder(stream);
-          this.recorder.ondataavailable = e => this.chunks.push(e.data);
+          await this.ensureMedia();
           this.listening = true;
-
           let speaking = false;
           let silenceSince = Date.now();
 
           const tick = () => {
             if (!this.listening) return;
-            analyser.getByteFrequencyData(data);
-            const volume = data.reduce((a,b) => a+b, 0) / data.length;
+            this.analyser.getByteFrequencyData(this.data);
+            const volume = this.data.reduce((a,b) => a+b, 0) / this.data.length;
 
             if (volume > 20) {
               silenceSince = Date.now();
               if (!speaking) {
                 speaking = true;
                 this.chunks = [];
-                this.recorder.start();
+                if (this.recorder.state === 'inactive') this.recorder.start();
                 UI.state('DETECTING','listening');
               }
             } else if (speaking && Date.now() - silenceSince > 1000) {
               this.listening = false;
-              this.recorder.stop();
+              if (this.recorder.state !== 'inactive') this.recorder.stop();
               this.recorder.onstop = () => CORE.execute(new Blob(this.chunks,{type:'audio/webm'}));
               return;
             }
@@ -336,6 +340,17 @@
           this.listening = false;
           UI.log('SYS','MIC ERROR — HTTPS / permission required');
         }
+      },
+
+      stop() {
+        this.listening = false;
+        if (this.recorder?.state !== 'inactive') this.recorder.stop();
+        this.stream?.getTracks().forEach(track => track.stop());
+        this.stream = null;
+        this.source = null;
+        this.analyser = null;
+        this.recorder = null;
+        this.data = null;
       }
     };
 
@@ -343,6 +358,7 @@
     document.querySelectorAll('[data-demo]').forEach(button => {
       button.addEventListener('click', () => CORE.demo(button.dataset.demo));
     });
+    window.addEventListener('beforeunload', () => VAD.stop());
   </script>
 </body>
 </html>
