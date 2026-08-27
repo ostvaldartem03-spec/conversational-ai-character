@@ -27,4 +27,4 @@ The interaction loop includes fallbacks for failed model, audio and video reques
 
 ## Public scope
 
-This document describes the architecture at a portfolio level. Production prompts, media assets, credentials and commercial implementation details are intentionally omitted.
+This repository is a sanitized portfolio reconstruction of the original working prototype. It includes the public interaction flow, architecture notes, screenshots, and the generated video routing library. Provider credentials, private prompts, backend implementations, and production integrations are intentionally omitted.
