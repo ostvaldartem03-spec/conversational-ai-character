@@ -42,16 +42,15 @@ The public video library and the generated assets shown here were created by **A
 
 ## Project status
 
-The AI layer was implemented as a working prototype. Final production integration was handled by another team and was not completed.
+The original AI prototype was operational. This public repository is a **sanitized portfolio reconstruction**, not an end-to-end production build: provider backends, credentials and private integrations are intentionally omitted.
+
+Final production integration was handled by another team and was not completed.
 
 ## Repository
 
-- `src/index.html` — sanitized public prototype
+- `src/index.html` — sanitized public reconstruction of the prototype flow
 - `src/video-library.js` — generated video library and semantic tags
-- `docs/ARCHITECTURE.md` — technical flow
-- `examples/orchestration.example.js` — simplified orchestration example
-
-Provider credentials and private production integrations are not included.
+- `docs/ARCHITECTURE.md` — technical flow and latency strategy
 
 ---
 
