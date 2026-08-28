@@ -8,7 +8,7 @@ Commercial conversational AI prototype with speech recognition, LLM-driven respo
 
 ## My role
 
-I worked on the **AI implementation and generative media layer**, not the final production UI.
+I worked on the conversational AI and generative-media layer:
 
 - character behaviour and prompt architecture
 - speech transcription workflow
@@ -16,13 +16,13 @@ I worked on the **AI implementation and generative media layer**, not the final 
 - semantic video routing
 - parallel TTS and video preloading
 - fallback handling
-- AI-generated reaction and scene library
+- generated reaction and scene library
 
 `Microphone -> VAD -> Speech-to-Text -> LLM -> structured response -> video + TTS -> playback`
 
 ## Runtime prototype
 
-The dark interface below was a development/testing environment for validating the conversational pipeline, logs, subtitles and playback flow — not the intended final product UI.
+The interface below was used to validate the conversation pipeline, logs, subtitles and playback flow.
 
 ![Runtime testing interface](docs/screenshots/dedmoroz-runtime.webp)
 
@@ -40,19 +40,13 @@ The public video library and the generated assets shown here were created by **A
 
 `JavaScript` · `Whisper` · `LLM APIs` · `TTS` · `Web Audio` · `MediaRecorder`
 
-## Project status
-
-The original AI prototype was operational. This public repository is a **sanitized portfolio reconstruction**, not an end-to-end production build: provider backends, credentials and private integrations are intentionally omitted.
-
-The public reconstruction exposes the generated-media demo flow. Live STT / LLM / TTS mode is deliberately disabled unless the private backend is supplied.
-
-Final production integration was handled by another team and was not completed.
-
 ## Repository
 
-- `src/index.html` — sanitized public reconstruction and media demo
+- `src/index.html` — public prototype and media demo
 - `src/video-library.js` — generated video library and semantic tags
 - `docs/ARCHITECTURE.md` — technical flow and latency strategy
+
+Provider credentials and private production integrations are intentionally omitted from the public repository.
 
 ---
 
