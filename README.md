@@ -34,7 +34,7 @@ The prototype uses a tagged library of short reactions and longer scenes. The mo
 | --- | --- |
 | ![Ded Moroz with a book](docs/screenshots/dedmoroz-book.webp) | ![Ded Moroz with a gift](docs/screenshots/dedmoroz-gift.webp) |
 
-The public video library and the generated assets shown here were created by **Artem Ostvald**.
+The public video library and the generated assets shown here were created by **Tim Ostvald**.
 
 ## Stack
 
@@ -50,4 +50,4 @@ Provider credentials and private production integrations are intentionally omitt
 
 ---
 
-Built by **Artem Ostvald** and **Zakhar Kondratiev**.
+Built by **Tim Ostvald** and **Zakhar Kondratiev**.
